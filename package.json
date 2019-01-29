@@ -1,8 +1,8 @@
 {
-  "name": "VkPostTakNePoidet",
+  "name": "vk-post-import",
   "version": "1.0.0",
   "description": "",
-  "main": "create_images.js",
+  "main": "app/script.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "babel": "npx babel './src/' --out-dir './app/' --watch --source-maps "
