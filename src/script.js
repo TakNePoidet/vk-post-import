@@ -8,7 +8,7 @@ import Database from './inc/database'
 import { http_build_query, Sleep, changeColor, rgbToHex } from './inc/function'
 import { saveFoto, applySmartCrop, getImageSize, imagesMinify, getMediumColor, ImageResize } from './inc/images'
 import dotenv from 'dotenv'
-
+import { isNull } from 'util'
 dotenv.config()
 
 const { TOKEN, DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD } = process.env
@@ -78,6 +78,8 @@ async function Start() {
 						let color = null
 						let reversing = null
 
+						let coverImages = {}
+
 						if (dataFilesVK[0].count < 1) {
 							if (!fs.existsSync(mainPath)) {
 								fs.mkdirSync(mainPath)
@@ -92,14 +94,26 @@ async function Start() {
 							await imagesMinify(`${mainPath}/${x1}`, `${mainPath}/`)
 							await imagesMinify(`${mainPath}/${x2}`, `${mainPath}/`)
 							await imagesMinify(`${mainPath}/${hash}200.jpg`, `${mainPath}/`)
-							
+
+							coverImages.min = {
+								src: dayPath + '/' + `${hash}200.jpg`,
+								...(await getImageSize(`${mainPath}/${hash}200.jpg`))
+							}
+							coverImages.normal = {
+								src: dayPath + '/' + x1,
+								...(await getImageSize(`${mainPath}/${x1}`))
+							}
+							coverImages.retina = {
+								src: dayPath + '/' + x2,
+								...(await getImageSize(`${mainPath}/${x2}`))
+							}
 							color = await getMediumColor(`${mainPath}/${x1}`)
 							reversing = (await changeColor(color)) ? 'lighten' : 'darken'
 							color = await rgbToHex(color)
 							md5FilesVK.push(hashFile)
 						}
 
-						let fotos = []
+						let fotos = {}
 						let i = 0
 						for await (let attachment of attachments) {
 							let photo = attachment.photo
@@ -123,10 +137,14 @@ async function Start() {
 								md5FilesVK.push(hashFile)
 							}
 
-							fotos.push({
-								standart: `${dayPath}/${hash}1140.jpg`,
-								original: `${dayPath}/${hash}.jpg`
-							})
+							fotos.standart = {
+								src: dayPath + '/' + `${hash}1140.jpg`,
+								...(await getImageSize(`${mainPath}/${hash}1140.jpg`))
+							}
+							fotos.original = {
+								src: dayPath + '/' + `${hash}.jpg`,
+								...(await getImageSize(`${mainPath}/${hash}.jpg`))
+							}
 
 							i++
 						}
@@ -134,7 +152,7 @@ async function Start() {
 						items_vk.push({
 							id: item.id,
 							text: item.text,
-							cover: [dayPath + '/' + x1, dayPath + '/' + x2],
+							cover: coverImages,
 							fotos: fotos,
 							date_str: date.format('LL'),
 							date: item.date,
