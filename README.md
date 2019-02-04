@@ -1,4 +1,7 @@
 # taknepoidet-images
 
-yarn OR npm install
+## Build Setup
 
+``` bash
+# install dependencies
+$ yarn install
