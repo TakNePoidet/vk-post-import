@@ -58,7 +58,6 @@ async function Start() {
 					if (item.attachments) {
 						let attachments = item.attachments.filter(attachment => attachment.type === 'photo')
 						if (attachments.length < 1) continue
-
 						let date = moment(item.date * 1000)
 						let dayPath = date.format('YYYY-MM-DD')
 						let mainPath = `./images/ready/${dayPath}`
@@ -88,32 +87,35 @@ async function Start() {
 							await applySmartCrop(path, `${mainPath}/${x1}`, 600, 600)
 							await applySmartCrop(path, `${mainPath}/${x2}`, 1200, 1200)
 
-							await Sleep(2000)
+							await Sleep(1000)
 							await getImageSize(`${mainPath}/${x1}`)
 
 							await imagesMinify(`${mainPath}/${x1}`, `${mainPath}/`)
 							await imagesMinify(`${mainPath}/${x2}`, `${mainPath}/`)
 							await imagesMinify(`${mainPath}/${hash}200.jpg`, `${mainPath}/`)
 
-							coverImages.min = {
-								src: dayPath + '/' + `${hash}200.jpg`,
-								...(await getImageSize(`${mainPath}/${hash}200.jpg`))
-							}
-							coverImages.normal = {
-								src: dayPath + '/' + x1,
-								...(await getImageSize(`${mainPath}/${x1}`))
-							}
-							coverImages.retina = {
-								src: dayPath + '/' + x2,
-								...(await getImageSize(`${mainPath}/${x2}`))
-							}
 							color = await getMediumColor(`${mainPath}/${x1}`)
 							reversing = (await changeColor(color)) ? 'lighten' : 'darken'
 							color = await rgbToHex(color)
 							md5FilesVK.push(hashFile)
 						}
+						coverImages.min = {
+							src: dayPath + '/' + `${hash}200.jpg`,
+							width: 200,
+							height: 200
+						}
+						coverImages.normal = {
+							src: dayPath + '/' + x1,
+							width: 600,
+							height: 600
+						}
+						coverImages.retina = {
+							src: dayPath + '/' + x2,
+							width: 1200,
+							height: 1200
+						}
 
-						let fotos = {}
+						let fotos = []
 						let i = 0
 						for await (let attachment of attachments) {
 							let photo = attachment.photo
@@ -129,23 +131,30 @@ async function Start() {
 								if (!fs.existsSync(mainPath)) {
 									fs.mkdirSync(mainPath)
 								}
-								await ImageResize(path, 1110, `${mainPath}/${hash}1140.jpg`)
+								await ImageResize(path, 1110, `${mainPath}/${hash}1110.jpg`)
 								fs.copyFileSync(path, `${mainPath}/${hash}.jpg`)
-								await imagesMinify(`${mainPath}/${hash}1140.jpg`, `${mainPath}/`)
+								await imagesMinify(`${mainPath}/${hash}1110.jpg`, `${mainPath}/`)
 								await imagesMinify(`${mainPath}/${hash}.jpg`, `${mainPath}/`)
 
 								md5FilesVK.push(hashFile)
 							}
+							let foto = {}
 
-							fotos.standart = {
-								src: dayPath + '/' + `${hash}1140.jpg`,
-								...(await getImageSize(`${mainPath}/${hash}1140.jpg`))
+							let originalSize = {
+								width: photo.sizes[photo.sizes.length - 1].width,
+								height: photo.sizes[photo.sizes.length - 1].height
 							}
-							fotos.original = {
+
+							foto.standart = {
+								src: dayPath + '/' + `${hash}1110.jpg`,
+								width: 1110,
+								height: Math.round((1110 / originalSize.width) * photo.sizes[photo.sizes.length - 1].height)
+							}
+							foto.original = {
 								src: dayPath + '/' + `${hash}.jpg`,
-								...(await getImageSize(`${mainPath}/${hash}.jpg`))
+								...originalSize
 							}
-
+							fotos.push(foto)
 							i++
 						}
 

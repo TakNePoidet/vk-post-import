@@ -18,8 +18,7 @@ async function saveFoto(item, photo) {
 		responseType: 'arraybuffer'
 	})
 	let path = `./images/temp/vk_id_${item.id}.png`
-	fs.writeFileSync(path, Buffer.from(responseFoto.data, 'binary'))
-
+	let res = fs.writeFileSync(path, Buffer.from(responseFoto.data, 'binary'))
 	return path
 }
 
